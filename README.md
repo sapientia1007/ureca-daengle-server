@@ -48,8 +48,10 @@ api 모듈을 독립적으로 배포할 수 있도록 브랜치 전략을 활용
 
 ## 💬 DynamoDB + 실시간 채팅
 
-<br />
-<br />
+반려인 사용자와 미용사/병원 간 간단한 상담 서비스를 위해 실시간 채팅 기능을 구현했습니다.
+STOMP 프로토콜을 활용해 WebSocket 기반의 실시간 통신을 지원하며, 다수의 사용자가 동시에 여러 채팅방에서 원활하게 소통할 수 있도록 설계했습니다.
+빠른 조회와 확장성을 위해 DynamoDB의 Partition Key와 Sort Key를 활용해 채팅방의 대화 내역을 시간순으로 효율적으로 조회 가능하도록 구현했습니다.
+
 
 ## 🚀 SQL 튜닝을 통한 DB 최적화
 
@@ -118,11 +120,11 @@ api 모듈을 독립적으로 배포할 수 있도록 브랜치 전략을 활용
 ## 🔨 작업 및 역할 분담
 <div align=center>
   
-| 팀원  | 사진 | 역할 |
-|-----------------|-----------------|-----------------|
-| 진명인   |  <img src="https://avatars.githubusercontent.com/myeonginjin" alt="진명인" width="100"> | <ul><li>인프라 구축</li><li>페이먼츠 시스템</li><li>금칙어 필터링 시스템</li></ul>     |
-| 백효석   |  <img src="https://avatars.githubusercontent.com/alexization" alt="백효석" width="100">| <ul><li>인증/인가 시스템</li><li>견적 입찰 시스템</li> |
-| 심지혜   |  <img src="https://avatars.githubusercontent.com/sapientia1007" alt="심지혜" width="100">    |<ul><li>실시간 채팅 시스템</li><li>실시간 화상 시스템</li></ul>  |
+| 팀원  | 사진 | 역할                                                            |
+|-----------------|-----------------|---------------------------------------------------------------|
+| 진명인   |  <img src="https://avatars.githubusercontent.com/myeonginjin" alt="진명인" width="100"> | <ul><li>인프라 구축</li><li>페이먼츠 시스템</li><li>금칙어 필터링 시스템</li></ul> |
+| 백효석   |  <img src="https://avatars.githubusercontent.com/alexization" alt="백효석" width="100">| <ul><li>인증/인가 시스템</li><li>견적 입찰 시스템</li>                      |
+| 심지혜   |  <img src="https://avatars.githubusercontent.com/sapientia1007" alt="심지혜" width="100">    | <ul><li>실시간 채팅 시스템</li><li>실시간 알림 시스템</li></ul>               |
 
 </div>
 <br/> 
