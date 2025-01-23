@@ -55,6 +55,6 @@ public class GroomingReviewRepository implements GroomingReviewPersist {
 
     @Override
     public Page<GroomingReview> findByGroomerId(Long groomerId, Pageable pageable) {
-        return groomingReviewJpaRepository.findByGroomerId(groomerId, pageable).map(GroomingReviewJpaEntity::toModel);
+        return groomingReviewJpaRepository.findByGroomerIdOrderByCreatedAtDesc(groomerId, pageable).map(GroomingReviewJpaEntity::toModel);
     }
 }

@@ -101,8 +101,9 @@ public class CareEstimateMapper {
                 .build();
     }
 
-    public static CareEstimateDetail mapToEstimateDetail(CareEstimate estimate, Vet vet, Pet pet, int daengleMeter) {
+    public static CareEstimateDetail mapToEstimateDetail(Long accountId, CareEstimate estimate, Vet vet, Pet pet, int daengleMeter) {
         return CareEstimateDetail.builder()
+                .accountId(vet.getAccountId())
                 .careEstimateId(estimate.getEstimateId())
                 .vetId(vet.getVetId())
                 .imageUrl(vet.getImageUrl())

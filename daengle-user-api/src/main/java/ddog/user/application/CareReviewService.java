@@ -236,7 +236,7 @@ public class CareReviewService {
     }
 
     public CareReviewListResp findVetReviewList(Long vetId, int page, int size) {
-        Vet savedVet = vetPersist.findByVetId(vetId)
+        Vet savedVet = vetPersist.findByAccountId(vetId)
                 .orElseThrow(() -> new ReviewException(ReviewExceptionType.REVIEWWEE_NOT_FOUNT));
 
         Pageable pageable = PageRequest.of(page, size);

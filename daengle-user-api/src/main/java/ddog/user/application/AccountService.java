@@ -4,6 +4,7 @@ import ddog.auth.config.jwt.JwtTokenProvider;
 import ddog.domain.account.Account;
 import ddog.domain.account.Role;
 import ddog.domain.account.port.AccountPersist;
+import ddog.domain.chat.port.ChatRoomPersist;
 import ddog.domain.payment.Payment;
 import ddog.domain.payment.port.PaymentPersist;
 import ddog.domain.pet.Breed;
@@ -43,6 +44,7 @@ public class AccountService {
     private final PaymentPersist paymentPersist;
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final ChatRoomPersist chatRoomPersist;
 
     @Transactional(readOnly = true)
     public ValidResponse.Nickname hasNickname(String nickname) {
@@ -231,6 +233,8 @@ public class AccountService {
                 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
 
         userPersist.deleteByAccountId(savedUser.getAccountId());
+        accountPersist.deleteByAccountId(accountId);
+        chatRoomPersist.deleteByWithDrawUser(accountId);
 
         return WithdrawResp.builder()
                 .accountId(savedUser.getAccountId())

@@ -4,6 +4,7 @@ import ddog.auth.config.jwt.JwtTokenProvider;
 import ddog.domain.account.Account;
 import ddog.domain.account.Role;
 import ddog.domain.account.port.AccountPersist;
+import ddog.domain.chat.port.ChatRoomPersist;
 import ddog.domain.groomer.Groomer;
 import ddog.domain.groomer.GroomerDaengleMeter;
 import ddog.domain.groomer.GroomerSummaryInfo;
@@ -50,6 +51,7 @@ public class AccountService {
     private final AccountPersist accountPersist;
     private final GroomerPersist groomerPersist;
     private final ReservationPersist reservationPersist;
+    private final ChatRoomPersist chatRoomPersist;
 
     private final LicensePersist licensePersist;
     private final BeautyShopPersist beautyShopPersist;
@@ -178,6 +180,8 @@ public class AccountService {
                 .orElseThrow(() -> new GroomerException(GroomerExceptionType.GROOMER_NOT_FOUND));
 
         groomerPersist.deleteByAccountId(savedGroomer.getAccountId());
+        accountPersist.deleteByAccountId(accountId);
+        chatRoomPersist.deleteByWithDrawPartner(accountId);
 
         return WithdrawResp.builder()
                 .accountId(savedGroomer.getAccountId())

@@ -33,17 +33,17 @@ public interface GroomingEstimateJpaRepository extends JpaRepository<GroomingEst
     @Query("UPDATE GroomingEstimates g SET g.status = :status WHERE g.parentId = :parentId")
     void updateStatusByParentId(@Param("status") EstimateStatus status, @Param("parentId") Long parentId);
 
-    Page<GroomingEstimateJpaEntity> findByPetIdAndStatusAndProposal(Long petId, EstimateStatus status, Proposal proposal, Pageable pageable);
+    Page<GroomingEstimateJpaEntity> findByPetIdAndStatusAndProposalOrderByCreatedAtDesc(Long petId, EstimateStatus status, Proposal proposal, Pageable pageable);
 
     Optional<GroomingEstimateJpaEntity> findTopByStatusAndProposalAndPetId(EstimateStatus status, Proposal proposal, Long petId);
 
-    Page<GroomingEstimateJpaEntity> findByStatusAndProposalAndAddress(EstimateStatus status, Proposal proposal, String address, Pageable pageable);
+    Page<GroomingEstimateJpaEntity> findByStatusAndProposalAndAddressOrderByCreatedAtDesc(EstimateStatus status, Proposal proposal, String address, Pageable pageable);
 
-    Page<GroomingEstimateJpaEntity> findByStatusAndProposalAndGroomerId(EstimateStatus status, Proposal proposal, Long groomerId, Pageable pageable);
+    Page<GroomingEstimateJpaEntity> findByStatusAndProposalAndGroomerIdOrderByCreatedAtDesc(EstimateStatus status, Proposal proposal, Long groomerId, Pageable pageable);
 
     List<GroomingEstimateJpaEntity> findAllByGroomerIdAndStatus(Long groomerId, EstimateStatus status);
 
-    List<GroomingEstimateJpaEntity> findAllByGroomerIdAndProposal(Long groomerId, Proposal proposal);
+    List<GroomingEstimateJpaEntity> findGroomingEstimateJpaEntitiesByGroomerIdAndProposalAndStatus(Long groomerId, Proposal proposal, EstimateStatus status);
 
     List<GroomingEstimateJpaEntity> findAllByGroomerId(Long groomerId);
 

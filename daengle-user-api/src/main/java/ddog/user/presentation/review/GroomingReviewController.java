@@ -2,9 +2,7 @@ package ddog.user.presentation.review;
 
 import ddog.auth.dto.PayloadDto;
 import ddog.auth.exception.common.CommonResponseEntity;
-import ddog.domain.notification.enums.NotifyType;
 import ddog.notification.application.KakaoNotificationService;
-import ddog.notification.application.NotificationService;
 import ddog.user.application.ReservationService;
 import ddog.user.presentation.reservation.dto.ReservationInfo;
 import ddog.user.presentation.review.dto.request.UpdateGroomingReviewInfo;

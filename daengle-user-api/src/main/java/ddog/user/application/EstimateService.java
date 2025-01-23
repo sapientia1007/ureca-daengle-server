@@ -359,7 +359,7 @@ public class EstimateService {
 
         int daengleMeter = user.calculateDaengleMeterWithGroomingBadge(groomer.getDaengleMeter(), groomer.getBadges());
 
-        return GroomingEstimateMapper.mapToEstimateDetail(groomingEstimate, groomer, pet, daengleMeter);
+        return GroomingEstimateMapper.mapToEstimateDetail(accountId, groomingEstimate, groomer, pet, daengleMeter);
     }
 
     @Transactional(readOnly = true)
@@ -378,7 +378,7 @@ public class EstimateService {
 
         int daengleMeter = user.calculateDaengleMeterWithCareBadge(vet.getDaengleMeter(), vet.getBadges());
 
-        return CareEstimateMapper.mapToEstimateDetail(careEstimate, vet, pet, daengleMeter);
+        return CareEstimateMapper.mapToEstimateDetail(accountId, careEstimate, vet, pet, daengleMeter);
     }
 
     @Transactional(readOnly = true)

@@ -41,7 +41,7 @@ public class GroomingEstimateRepository implements GroomingEstimatePersist {
     }
 
     public Page<GroomingEstimate> findByPetIdAndStatusAndProposal(Long petId, EstimateStatus status, Proposal proposal, Pageable pageable) {
-        return groomingEstimateJpaRepository.findByPetIdAndStatusAndProposal(petId, status, proposal, pageable)
+        return groomingEstimateJpaRepository.findByPetIdAndStatusAndProposalOrderByCreatedAtDesc(petId, status, proposal, pageable)
                 .map(GroomingEstimateJpaEntity::toModel);
     }
 
@@ -52,13 +52,13 @@ public class GroomingEstimateRepository implements GroomingEstimatePersist {
     }
 
     public Page<GroomingEstimate> findByStatusAndProposalAndAddress(EstimateStatus status, Proposal proposal, String address, Pageable pageable) {
-        return groomingEstimateJpaRepository.findByStatusAndProposalAndAddress(status, proposal, address, pageable)
+        return groomingEstimateJpaRepository.findByStatusAndProposalAndAddressOrderByCreatedAtDesc(status, proposal, address, pageable)
                 .map(GroomingEstimateJpaEntity::toModel);
     }
 
     @Override
     public Page<GroomingEstimate> findByStatusAndProposalAndGroomerId(EstimateStatus status, Proposal proposal, Long groomerId, Pageable pageable) {
-        return groomingEstimateJpaRepository.findByStatusAndProposalAndGroomerId(status, proposal, groomerId, pageable)
+        return groomingEstimateJpaRepository.findByStatusAndProposalAndGroomerIdOrderByCreatedAtDesc(status, proposal, groomerId, pageable)
                 .map(GroomingEstimateJpaEntity::toModel);
     }
 
@@ -77,7 +77,7 @@ public class GroomingEstimateRepository implements GroomingEstimatePersist {
     @Override
     public List<GroomingEstimate> findGroomingEstimatesByGroomerIdAndProposal(Long groomerAccountId) {
         List<GroomingEstimate> estimate = new ArrayList<>();
-        List<GroomingEstimateJpaEntity> findEstimates = groomingEstimateJpaRepository.findAllByGroomerIdAndProposal(groomerAccountId, Proposal.DESIGNATION);
+        List<GroomingEstimateJpaEntity> findEstimates = groomingEstimateJpaRepository.findGroomingEstimateJpaEntitiesByGroomerIdAndProposalAndStatus(groomerAccountId, Proposal.DESIGNATION, EstimateStatus.NEW);
 
         for (GroomingEstimateJpaEntity findEstimate : findEstimates) {
             estimate.add(findEstimate.toModel());

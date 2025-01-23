@@ -14,6 +14,7 @@ import java.util.List;
 @Builder
 public class GroomingEstimateDetail {
 
+    private Long accountId;
     private Long groomingEstimateId;
     private Long groomerId;
     private String imageUrl;

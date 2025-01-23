@@ -55,7 +55,6 @@ public class CareReviewRepository implements CareReviewPersist {
 
     @Override
     public Page<CareReview> findByVetId(Long vetId, Pageable pageable) {
-        return careReviewJpaRepository.findByVetId(vetId, pageable).map(CareReviewJpaEntity::toModel);
+        return careReviewJpaRepository.findByVetIdOrderByCreatedAtDesc(vetId, pageable).map(CareReviewJpaEntity::toModel);
     }
 }
-

@@ -23,7 +23,7 @@ public class AccountController {
         return success(accountService.signUp(request, response));
     }
 
-    @GetMapping("/info")
+    @GetMapping("/profile")
     public CommonResponseEntity<ProfileInfo> getVetInfo(PayloadDto payloadDto) {
         return success(accountService.getVetInfo(payloadDto.getAccountId()));
     }
@@ -33,7 +33,7 @@ public class AccountController {
         return success(accountService.getModifyPage(payloadDto.getAccountId()));
     }
 
-    @PatchMapping("/info")
+    @PatchMapping("/profile")
     public CommonResponseEntity<AccountResp> updateInfo(@RequestBody UpdateInfo request, PayloadDto payloadDto) {
         return success(accountService.updateInfo(request, payloadDto.getAccountId()));
     }
@@ -43,7 +43,7 @@ public class AccountController {
         return success(accountService.getWithdrawInfo(payloadDto.getAccountId()));
     }
 
-    @DeleteMapping("/info")
+    @DeleteMapping("/profile")
     public CommonResponseEntity<WithdrawResp> withdraw(PayloadDto payloadDto) {
         return success(accountService.withdraw(payloadDto.getAccountId()));
     }

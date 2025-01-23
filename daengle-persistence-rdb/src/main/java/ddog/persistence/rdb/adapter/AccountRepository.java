@@ -17,6 +17,11 @@ public class AccountRepository implements AccountPersist {
     private final AccountJpaRepository accountJpaRepository;
 
     @Override
+    public void deleteByAccountId(Long accountId) {
+        accountJpaRepository.deleteById(accountId);
+    }
+
+    @Override
     public boolean hasAccountByEmailAndRole(String email, Role role) {
         return accountJpaRepository.existsByEmailAndRole(email, role);
     }

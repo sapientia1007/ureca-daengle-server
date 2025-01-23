@@ -39,15 +39,15 @@ public interface CareEstimateJpaRepository extends JpaRepository<CareEstimateJpa
             "WHERE c.userId = :userId AND c.status = :status AND c.proposal = :proposal")
     List<Tuple> findByStatusAndProposalAndUserId(EstimateStatus status, Proposal proposal, Long userId);
 
-    Page<CareEstimateJpaEntity> findByPetIdAndStatusAndProposal(Long petId, EstimateStatus status, Proposal proposal, Pageable pageable);
+    Page<CareEstimateJpaEntity> findByPetIdAndStatusAndProposalOrderByCreatedAtDesc(Long petId, EstimateStatus status, Proposal proposal, Pageable pageable);
 
-    Page<CareEstimateJpaEntity> findByStatusAndProposalAndAddress(EstimateStatus status, Proposal proposal, String address, Pageable pageable);
+    Page<CareEstimateJpaEntity> findByStatusAndProposalAndAddressOrderByCreatedAtDesc(EstimateStatus status, Proposal proposal, String address, Pageable pageable);
 
-    Page<CareEstimateJpaEntity> findByStatusAndProposalAndVetId(EstimateStatus status, Proposal proposal, Long vetId, Pageable pageable);
+    Page<CareEstimateJpaEntity> findByStatusAndProposalAndVetIdOrderByCreatedAtDesc(EstimateStatus status, Proposal proposal, Long vetId, Pageable pageable);
 
     List<CareEstimateJpaEntity> findCareEstimatesByVetIdAndStatus(Long vetAccountId, EstimateStatus status);
 
-    List<CareEstimateJpaEntity> findCareEstimatesByVetIdAndProposal(Long vetAccountId, Proposal proposal);
+    List<CareEstimateJpaEntity> findCareEstimateJpaEntitiesByVetIdAndProposalAndStatus(Long vetAccountId, Proposal proposal, EstimateStatus status);
 
     List<CareEstimateJpaEntity> findByVetId(Long vetAccountId);
 

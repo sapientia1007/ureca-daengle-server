@@ -131,11 +131,11 @@ public class GroomingReviewService {
 
         for (GroomingKeyword postKeyword : postKeywords) {
             boolean isAdded = false;
-            
+
             for (GroomerKeyword groomerKeyword : groomerKeywords) {
                 if (postKeyword.toString().equals(groomerKeyword.getKeyword())) {
                     groomerKeyword.increaseCount();
-                    
+
                     if (groomerKeyword.isAvailableRegisterBadge()) {
                         if (postKeyword.getBadge() != null) {
                             badges.add(postKeyword.getBadge());
@@ -148,7 +148,7 @@ public class GroomingReviewService {
             if (isAdded) {
                 continue;
             }
-            
+
             GroomerKeyword newKeyword = GroomerKeyword.createNewKeyword(groomer.getAccountId(), postKeyword.toString());
             GroomerKeyword savedKeyword = groomerKeywordPersist.save(newKeyword);
             groomerKeywords.add(savedKeyword);
@@ -236,7 +236,7 @@ public class GroomingReviewService {
 
     @Transactional(readOnly = true)
     public GroomingReviewListResp findGroomerReviewList(Long groomerId, int page, int size) {
-        Groomer savedGroomer = groomerPersist.findByGroomerId(groomerId)
+        Groomer savedGroomer = groomerPersist.findByAccountId(groomerId)
                 .orElseThrow(() -> new ReviewException(ReviewExceptionType.REVIEWWEE_NOT_FOUNT));
 
         Pageable pageable = PageRequest.of(page, size);

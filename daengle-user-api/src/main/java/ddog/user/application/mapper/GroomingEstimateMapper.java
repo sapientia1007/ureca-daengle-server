@@ -103,8 +103,9 @@ public class GroomingEstimateMapper {
                 .build();
     }
 
-    public static GroomingEstimateDetail mapToEstimateDetail(GroomingEstimate estimate, Groomer groomer, Pet pet, int daengleMeter) {
+    public static GroomingEstimateDetail mapToEstimateDetail(Long accountId, GroomingEstimate estimate, Groomer groomer, Pet pet, int daengleMeter) {
         return GroomingEstimateDetail.builder()
+                .accountId(groomer.getAccountId())
                 .groomingEstimateId(estimate.getEstimateId())
                 .groomerId(groomer.getGroomerId())
                 .imageUrl(groomer.getImageUrl())

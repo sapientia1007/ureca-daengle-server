@@ -18,6 +18,7 @@ public class ScheduleResp {
     @Getter
     @Builder
     public static class TodayReservation {
+        public Long reservationId;
         public Long petId;
         public String petImage;
         public String petName;

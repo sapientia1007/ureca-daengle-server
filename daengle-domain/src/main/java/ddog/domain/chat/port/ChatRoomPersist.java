@@ -13,4 +13,6 @@ public interface ChatRoomPersist {
     List<ChatRoom> findByUserId(Long userId);
     List<ChatRoom> findByPartnerId(Long partnerId);
     List<ChatRoom> findByUserIdAndPartnerType(Long userId, PartnerType partnerType);
+    void deleteByWithDrawUser(Long userId);
+    void deleteByWithDrawPartner(Long partnerId);
 }

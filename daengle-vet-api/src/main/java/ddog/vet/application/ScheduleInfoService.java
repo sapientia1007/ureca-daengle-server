@@ -3,6 +3,8 @@ package ddog.vet.application;
 import ddog.domain.estimate.CareEstimate;
 import ddog.domain.estimate.EstimateStatus;
 import ddog.domain.estimate.port.CareEstimatePersist;
+import ddog.domain.payment.enums.ServiceType;
+import ddog.domain.payment.port.ReservationPersist;
 import ddog.domain.pet.Pet;
 import ddog.domain.pet.port.PetPersist;
 import ddog.domain.vet.Vet;
@@ -26,6 +28,7 @@ public class ScheduleInfoService {
     private final VetPersist vetPersist;
     private final CareEstimatePersist careEstimatePersist;
     private final PetPersist petPersist;
+    private final ReservationPersist reservationPersist;
 
     public ScheduleResp getScheduleByVetAccountId(Long accountId) {
         Vet savedVet = vetPersist.findByAccountId(accountId).orElseThrow(() -> new VetException(VetExceptionType.VET_NOT_FOUND));
@@ -45,6 +48,7 @@ public class ScheduleInfoService {
             Long petId = reservation.getPetId();
             Pet pet = petPersist.findByPetId(petId).orElseThrow(()-> new PetException(PetExceptionType.PET_NOT_FOUND));
             toSaveReservation.add(ScheduleResp.TodayReservation.builder()
+                    .reservationId(reservationPersist.findByEstimateIdAndType(reservation.getEstimateId(), ServiceType.CARE).get().getReservationId())
                     .petId(reservation.getPetId())
                     .petName(pet.getName())
                     .petImage(pet.getImageUrl())

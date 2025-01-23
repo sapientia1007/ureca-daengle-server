@@ -37,12 +37,12 @@ public class AccountController {
         return success(accountService.signUpWithoutPet(request, response));
     }
 
-    @GetMapping("/info")
+    @GetMapping("/profile")
     public CommonResponseEntity<ProfileInfo.UpdatePage> getUserProfileInfo(PayloadDto payloadDto) {
         return success(accountService.getUserProfileInfo(payloadDto.getAccountId()));
     }
 
-    @PatchMapping("/info")
+    @PatchMapping("/profile")
     public CommonResponseEntity<AccountResp> updateUserInfo(@RequestBody UpdateUserInfoReq request, PayloadDto payloadDto) {
         return success(accountService.updateUserInfo(request, payloadDto.getAccountId()));
     }
@@ -72,7 +72,7 @@ public class AccountController {
         return success(accountService.getWithdrawInfo(payloadDto.getAccountId()));
     }
 
-    @DeleteMapping("/info")
+    @DeleteMapping("/profile")
     public CommonResponseEntity<WithdrawResp> withdraw(PayloadDto payloadDto) {
         return success(accountService.withdraw(payloadDto.getAccountId()));
     }

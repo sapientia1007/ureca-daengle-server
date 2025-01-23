@@ -12,10 +12,6 @@ import ddog.domain.chat.ChatRoom;
 import ddog.domain.chat.enums.PartnerType;
 import ddog.domain.chat.port.ChatMessagePersist;
 import ddog.domain.chat.port.ChatRoomPersist;
-import ddog.domain.estimate.CareEstimate;
-import ddog.domain.estimate.GroomingEstimate;
-import ddog.domain.estimate.port.CareEstimatePersist;
-import ddog.domain.estimate.port.GroomingEstimatePersist;
 import ddog.domain.groomer.Groomer;
 import ddog.domain.groomer.port.GroomerPersist;
 import ddog.domain.user.User;
@@ -41,15 +37,14 @@ public class ChatService {
     private final VetPersist vetPersist;
     private final AccountPersist accountPersist;
 
-    private ChatRoom startChat(Role role, Long accountId, Long otherUserId) {
-        return findOrSaveChatRoom(role, accountId, otherUserId);
-    }
-
     public ChatMessagesListResp getAllMessagesByRoomId(Role role, Long userAccountId, Long otherUserId) {
-        ChatRoom savedChatRoom = startChat(role, userAccountId, otherUserId);
+        Long chatRoomId ;
         String otherUserProfile = null;
         String otherUserName = null;
         if (role.equals(Role.DAENGLE)) {
+            ChatRoom savedChatRoom = chatRoomPersist.findByUserIdPartnerId(userAccountId, otherUserId);
+            chatRoomId = savedChatRoom.getChatRoomId();
+
             Account savedOtherUser = accountPersist.findById(otherUserId);
             if (savedOtherUser.getRole().equals(Role.GROOMER)) {
                 Groomer savedGroomer = groomerPersist.findByAccountId(otherUserId).orElse(null);
@@ -61,16 +56,19 @@ public class ChatService {
                 otherUserName = (savedVet != null) ? savedVet.getName() : null;
             }
         } else {
+            ChatRoom savedChatRoom = chatRoomPersist.findByUserIdPartnerId(otherUserId, userAccountId);
+            chatRoomId = savedChatRoom.getChatRoomId();
+
             User savedUser = userPersist.findByAccountId(otherUserId).orElse(null);
             otherUserProfile = (savedUser != null) ? savedUser.getImageUrl() : null;
             otherUserName = (savedUser != null) ? savedUser.getNickname() : null;
         }
 
-        List<ChatMessage> savedMessages = chatMessagePersist.findByChatRoomId(savedChatRoom.getChatRoomId());
+        List<ChatMessage> savedMessages = chatMessagePersist.findByChatRoomId(chatRoomId);
 
         if (savedMessages == null || savedMessages.isEmpty()) {
             return ChatMessagesListResp.builder()
-                    .roomId(savedChatRoom.getChatRoomId())
+                    .roomId(chatRoomId)
                     .userId(userAccountId)
                     .otherId(otherUserId)
                     .otherName(otherUserName)
@@ -105,7 +103,7 @@ public class ChatService {
                 .collect(Collectors.toList());
 
         return ChatMessagesListResp.builder()
-                .roomId(savedChatRoom.getChatRoomId())
+                .roomId(chatRoomId)
                 .userId(userAccountId)
                 .otherId(otherUserId)
                 .otherName(otherUserName)
@@ -127,31 +125,39 @@ public class ChatService {
             String partnerName = null;
             String partnerProfile = null;
 
-            Account partnerAccount = accountPersist.findById(savedChatRoom.getPartnerId());
-            if (partnerAccount.getRole().equals(Role.GROOMER)) {
-                Groomer savedGroomer = groomerPersist.findByAccountId(partnerAccount.getAccountId()).orElse(null);
-                partnerName = (savedGroomer != null) ? savedGroomer.getName() : null;
-                partnerProfile = (savedGroomer != null) ? savedGroomer.getImageUrl() : null;
-            } else if (partnerAccount.getRole().equals(Role.VET)) {
-                Vet savedVet = vetPersist.findByAccountId(partnerAccount.getAccountId()).orElse(null);
-                partnerName = (savedVet != null) ? savedVet.getName() : null;
-                partnerProfile = (savedVet != null) ? savedVet.getImageUrl() : null;
+            Account partnerAccount = null;
+            try {
+                partnerAccount = accountPersist.findById(savedChatRoom.getPartnerId());
+            } catch (RuntimeException e) {
+                System.out.println("no account");
             }
-            ChatMessage savedLastMessages = chatMessagePersist.findLatestMessageByRoomId(savedChatRoom.getChatRoomId());
-            String lastMessage = (savedLastMessages != null) ? savedLastMessages.getContent() : "";
-            String messageTime = (savedLastMessages != null)
-                    ? savedLastMessages.getTimestamp().toString()
-                    : "";
 
-            userChatRoomListResps.add(UserChatRoomListResp.RoomList.builder()
-                    .roomId(savedChatRoom.getChatRoomId())
-                    .otherId(savedChatRoom.getPartnerId())
-                    .otherName(partnerName)
-                    .otherProfile(partnerProfile)
-                    .messageTime(messageTime)
-                    .lastMessage(lastMessage)
-                    .partnerType(savedChatRoom.getPartnerType())
-                    .build());
+            if (partnerAccount != null) {
+                if (partnerAccount.getRole().equals(Role.GROOMER)) {
+                    Groomer savedGroomer = groomerPersist.findByAccountId(partnerAccount.getAccountId()).orElse(null);
+                    partnerName = (savedGroomer != null) ? savedGroomer.getName() : null;
+                    partnerProfile = (savedGroomer != null) ? savedGroomer.getImageUrl() : null;
+                } else if (partnerAccount.getRole().equals(Role.VET)) {
+                    Vet savedVet = vetPersist.findByAccountId(partnerAccount.getAccountId()).orElse(null);
+                    partnerName = (savedVet != null) ? savedVet.getName() : null;
+                    partnerProfile = (savedVet != null) ? savedVet.getImageUrl() : null;
+                }
+                ChatMessage savedLastMessages = chatMessagePersist.findLatestMessageByRoomId(savedChatRoom.getChatRoomId());
+                String lastMessage = (savedLastMessages != null) ? savedLastMessages.getContent() : "";
+                String messageTime = (savedLastMessages != null)
+                        ? savedLastMessages.getTimestamp().toString()
+                        : "";
+
+                userChatRoomListResps.add(UserChatRoomListResp.RoomList.builder()
+                        .roomId(savedChatRoom.getChatRoomId())
+                        .otherId(savedChatRoom.getPartnerId())
+                        .otherName(partnerName)
+                        .otherProfile(partnerProfile)
+                        .messageTime(messageTime)
+                        .lastMessage(lastMessage)
+                        .partnerType(savedChatRoom.getPartnerType())
+                        .build());
+            }
         }
 
         return UserChatRoomListResp.builder()
@@ -162,7 +168,7 @@ public class ChatService {
     public boolean deleteChatRoom(Long roomId) {
         ChatRoom savedChatRoom = chatRoomPersist.findByRoomId(roomId);
         if (savedChatRoom == null) {
-            return false;
+            return true;
         }
         chatRoomPersist.exitChatRoom(savedChatRoom.getUserId(), savedChatRoom.getPartnerId());
 
@@ -170,7 +176,7 @@ public class ChatService {
     }
 
     public ChatMessage sendAndSaveMessage(ChatMessageReq chatMessageReq, Long roomId, Long accountId) {
-        Long recipientId = findMessageRecipientByRoomId(roomId, chatMessageReq.getSenderId());
+        Long recipientId = findMessageRecipientByRoomId(roomId, accountId);
         Long messageId = System.currentTimeMillis();
 
         ChatMessage chatMessage = ChatMessage.builder()
@@ -196,19 +202,25 @@ public class ChatService {
         List<PartnerChatRoomListResp.RoomList> partnerChatRoomListResps = new ArrayList<>();
         for (ChatRoom savedChatRoom : savedChatRooms) {
 
-            User savedUser = userPersist.findByAccountId(savedChatRoom.getUserId()).orElse(null);
+            User savedUser = null;
+            try {
+                savedUser = userPersist.findByAccountId(savedChatRoom.getUserId()).orElse(null);
+            } catch (RuntimeException e) {
+                System.out.println("no account");
+            }
 
-            ChatMessage savedLastMessages = chatMessagePersist.findLatestMessageByRoomId(savedChatRoom.getChatRoomId());
+            if (savedUser != null) {
+                ChatMessage savedLastMessages = chatMessagePersist.findLatestMessageByRoomId(savedChatRoom.getChatRoomId());
 
-            partnerChatRoomListResps.add(PartnerChatRoomListResp.RoomList.builder()
-                    .roomId(savedChatRoom.getChatRoomId())
-                    .otherId(savedChatRoom.getUserId())
-                    .otherName((savedUser != null) ? savedUser.getNickname() : null)
-                    .otherProfile((savedUser != null) ? savedUser.getImageUrl() : null)
-                    .messageTime((savedLastMessages != null) ? savedLastMessages.getTimestamp().toString() : null)
-                    .lastMessage((savedLastMessages != null) ? savedLastMessages.getContent() : null)
-                    .build());
-
+                partnerChatRoomListResps.add(PartnerChatRoomListResp.RoomList.builder()
+                        .roomId(savedChatRoom.getChatRoomId())
+                        .otherId(savedChatRoom.getUserId())
+                        .otherName((savedUser != null) ? savedUser.getNickname() : null)
+                        .otherProfile((savedUser != null) ? savedUser.getImageUrl() : null)
+                        .messageTime((savedLastMessages != null) ? savedLastMessages.getTimestamp().toString() : null)
+                        .lastMessage((savedLastMessages != null) ? savedLastMessages.getContent() : null)
+                        .build());
+            }
         }
         return PartnerChatRoomListResp.builder()
                 .roomList(partnerChatRoomListResps)
@@ -216,22 +228,30 @@ public class ChatService {
     }
 
     public ChatRoom findOrSaveChatRoom(Role role, Long accountId, Long otherUserId) {
-        ChatRoom toSaveChat = null;
+        ChatRoom existingChatRoom = null;
+
         if (role.equals(Role.DAENGLE)) {
-            if (accountPersist.findById(otherUserId).getRole().equals(Role.VET)) {
-                toSaveChat = chatRoomPersist.enterChatRoom(accountId, otherUserId, PartnerType.VET_PARTNER);
-            } else if (accountPersist.findById(otherUserId).getRole().equals(Role.GROOMER)) {
-                toSaveChat = chatRoomPersist.enterChatRoom(accountId, otherUserId, PartnerType.GROOMER_PARTNER);
+            existingChatRoom = chatRoomPersist.findByUserIdPartnerId(accountId, otherUserId);
+            if (existingChatRoom == null) {
+                if (accountPersist.findById(otherUserId).getRole().equals(Role.VET)) {
+                    existingChatRoom = chatRoomPersist.enterChatRoom(accountId, otherUserId, PartnerType.VET_PARTNER);
+                } else if (accountPersist.findById(otherUserId).getRole().equals(Role.GROOMER)) {
+                    existingChatRoom = chatRoomPersist.enterChatRoom(accountId, otherUserId, PartnerType.GROOMER_PARTNER);
+                }
             }
         } else {
-            if (role.equals(Role.GROOMER)) {
-                toSaveChat = chatRoomPersist.enterChatRoom(otherUserId, accountId, PartnerType.GROOMER_PARTNER);
-            } else if (role.equals(Role.VET)) {
-                toSaveChat = chatRoomPersist.enterChatRoom(otherUserId, accountId, PartnerType.VET_PARTNER);
+            existingChatRoom = chatRoomPersist.findByUserIdPartnerId(otherUserId, accountId);
+            if (existingChatRoom == null) {
+                if (role.equals(Role.GROOMER)) {
+                    existingChatRoom = chatRoomPersist.enterChatRoom(otherUserId, accountId, PartnerType.GROOMER_PARTNER);
+                } else if (role.equals(Role.VET)) {
+                    existingChatRoom = chatRoomPersist.enterChatRoom(otherUserId, accountId, PartnerType.VET_PARTNER);
+                }
             }
         }
-        return toSaveChat;
+        return existingChatRoom;
     }
+
 
     private Long findMessageRecipientByRoomId(Long roomId, Long senderId) {
         ChatRoom savedChatRoom = chatRoomPersist.findByRoomId(roomId);

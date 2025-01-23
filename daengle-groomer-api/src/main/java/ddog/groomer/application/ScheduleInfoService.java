@@ -5,6 +5,8 @@ import ddog.domain.estimate.GroomingEstimate;
 import ddog.domain.estimate.port.GroomingEstimatePersist;
 import ddog.domain.groomer.Groomer;
 import ddog.domain.groomer.port.GroomerPersist;
+import ddog.domain.payment.enums.ServiceType;
+import ddog.domain.payment.port.ReservationPersist;
 import ddog.domain.pet.Pet;
 import ddog.domain.pet.port.PetPersist;
 
@@ -29,6 +31,7 @@ public class ScheduleInfoService {
     private final GroomerPersist groomerPersist;
     private final PetPersist petPersist;
     private final GroomingEstimatePersist groomingEstimatePersist;
+    private final ReservationPersist reservationPersist;
 
     public ScheduleResp getScheduleByGroomerAccountId(Long accountId) {
 
@@ -47,6 +50,7 @@ public class ScheduleInfoService {
             Pet pet = petPersist.findByPetId(petId).orElseThrow(() -> new PetException(PetExceptionType.PET_NOT_FOUND));
             GroomingEstimate savedGroomingEstimate =groomingEstimatePersist.findByEstimateId(reservation.getEstimateId()).orElseThrow(()-> new GroomingEstimateException(GroomingEstimateExceptionType.GROOMING_ESTIMATE_NOT_FOUND));
             toSaveReservations.add(ScheduleResp.TodayReservation.builder()
+                    .reservationId(reservationPersist.findByEstimateIdAndType(reservation.getEstimateId(), ServiceType.GROOMING).get().getReservationId())
                     .petId(petId)
                     .petName(pet.getName())
                     .reservationTime(reservation.getReservedDate().toLocalTime())

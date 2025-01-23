@@ -13,6 +13,7 @@ import java.util.List;
 @Builder
 public class CareEstimateDetail {
 
+    private Long accountId;
     private Long careEstimateId;
     private Long vetId;
     private String imageUrl;

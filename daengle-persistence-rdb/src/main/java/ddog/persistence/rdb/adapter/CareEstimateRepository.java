@@ -13,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +39,7 @@ public class CareEstimateRepository implements CareEstimatePersist {
 
     @Override
     public Page<CareEstimate> findByPetIdAndStatusAndProposal(Long petId, EstimateStatus status, Proposal proposal, Pageable pageable) {
-        return careEstimateJpaRepository.findByPetIdAndStatusAndProposal(petId, status, proposal, pageable)
+        return careEstimateJpaRepository.findByPetIdAndStatusAndProposalOrderByCreatedAtDesc(petId, status, proposal, pageable)
                 .map(CareEstimateJpaEntity::toModel);
     }
 
@@ -66,13 +65,13 @@ public class CareEstimateRepository implements CareEstimatePersist {
 
     @Override
     public Page<CareEstimate> findByStatusAndProposalAndAddress(EstimateStatus status, Proposal proposal, String address, Pageable pageable) {
-        return careEstimateJpaRepository.findByStatusAndProposalAndAddress(status, proposal, address, pageable)
+        return careEstimateJpaRepository.findByStatusAndProposalAndAddressOrderByCreatedAtDesc(status, proposal, address, pageable)
                 .map(CareEstimateJpaEntity::toModel);
     }
 
     @Override
     public Page<CareEstimate> findByStatusAndProposalAndVetId(EstimateStatus status, Proposal proposal, Long accountId, Pageable pageable) {
-        return careEstimateJpaRepository.findByStatusAndProposalAndVetId(status, proposal, accountId, pageable)
+        return careEstimateJpaRepository.findByStatusAndProposalAndVetIdOrderByCreatedAtDesc(status, proposal, accountId, pageable)
                 .map(CareEstimateJpaEntity::toModel);
     }
 
@@ -96,7 +95,7 @@ public class CareEstimateRepository implements CareEstimatePersist {
     @Override
     public List<CareEstimate> findCareEstimatesByVetIdAndProposal(Long vetAccountId) {
         List<CareEstimate> estimate = new ArrayList<>();
-        List<CareEstimateJpaEntity> findEstimates = careEstimateJpaRepository.findCareEstimatesByVetIdAndProposal(vetAccountId, Proposal.DESIGNATION);
+        List<CareEstimateJpaEntity> findEstimates = careEstimateJpaRepository.findCareEstimateJpaEntitiesByVetIdAndProposalAndStatus(vetAccountId, Proposal.DESIGNATION, EstimateStatus.NEW);
 
         for (CareEstimateJpaEntity findEstimate : findEstimates) {
             estimate.add(findEstimate.toModel());
@@ -135,4 +134,3 @@ public class CareEstimateRepository implements CareEstimatePersist {
         return careEstimateJpaRepository.findCareEstimateJpaEntitiesByUserIdAndStatus(userId, estimateStatus).stream().map(CareEstimateJpaEntity::toModel).toList();
     }
 }
-

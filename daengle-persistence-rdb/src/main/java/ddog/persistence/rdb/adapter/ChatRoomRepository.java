@@ -19,34 +19,28 @@ public class ChatRoomRepository implements ChatRoomPersist {
 
     @Override
     public ChatRoom enterChatRoom(Long userId, Long partnerId, PartnerType partnerType) {
-
-        if (chatRoomJpaRepository.findByUserIdAndPartnerId(userId, partnerId) == null) {
-            ChatRoom chatRoom = ChatRoom.builder()
-                    .userId(userId)
-                    .partnerId(partnerId)
-                    .partnerType(partnerType)
-                    .build();
-            return chatRoomJpaRepository.save(ChatRoomJpaEntity.from(chatRoom)).toModel();
-        }
-        else {
-            return chatRoomJpaRepository.findByUserIdAndPartnerId(userId, partnerId).toModel();
-        }
+        ChatRoom chatRoom = ChatRoom.builder()
+                .userId(userId)
+                .partnerId(partnerId)
+                .partnerType(partnerType)
+                .build();
+        return chatRoomJpaRepository.save(ChatRoomJpaEntity.from(chatRoom)).toModel();
     }
 
     @Override
     public void exitChatRoom(Long userId, Long partnerId) {
-        ChatRoom findRoom = chatRoomJpaRepository.findByUserIdAndPartnerId(userId, partnerId).toModel();
-        chatRoomJpaRepository.deleteById(findRoom.getChatRoomId());
+        ChatRoom findRoom = chatRoomJpaRepository.findByUserIdAndPartnerId(userId, partnerId).map(ChatRoomJpaEntity::toModel).orElse(null);
+        if (findRoom != null) chatRoomJpaRepository.deleteById(findRoom.getChatRoomId());
     }
 
     @Override
     public ChatRoom findByUserIdPartnerId(Long userId, Long partnerId) {
-        return chatRoomJpaRepository.findByUserIdAndPartnerId(userId, partnerId).toModel();
+        return chatRoomJpaRepository.findByUserIdAndPartnerId(userId, partnerId).map(ChatRoomJpaEntity::toModel).orElse(null);
     }
 
     @Override
     public ChatRoom findByRoomId(Long roomId) {
-        return chatRoomJpaRepository.findByChatRoomId(roomId).toModel();
+        return chatRoomJpaRepository.findByChatRoomId(roomId).map(ChatRoomJpaEntity::toModel).orElse(null);
     }
 
     @Override
@@ -62,5 +56,15 @@ public class ChatRoomRepository implements ChatRoomPersist {
     @Override
     public List<ChatRoom> findByUserIdAndPartnerType(Long userId, PartnerType partnerType) {
         return chatRoomJpaRepository.findAllByUserIdAndPartnerType(userId, partnerType).stream().map(ChatRoomJpaEntity::toModel).toList();
+    }
+
+    @Override
+    public void deleteByWithDrawUser(Long userId) {
+        chatRoomJpaRepository.deleteChatRoomJpaEntitiesByUserId(userId);
+    }
+
+    @Override
+    public void deleteByWithDrawPartner(Long partnerId) {
+        chatRoomJpaRepository.deleteChatRoomJpaEntitiesByPartnerId(partnerId);
     }
 }

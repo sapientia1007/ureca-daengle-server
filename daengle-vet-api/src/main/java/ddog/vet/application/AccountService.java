@@ -4,6 +4,7 @@ import ddog.auth.config.jwt.JwtTokenProvider;
 import ddog.domain.account.Account;
 import ddog.domain.account.Role;
 import ddog.domain.account.port.AccountPersist;
+import ddog.domain.chat.port.ChatRoomPersist;
 import ddog.domain.payment.Reservation;
 import ddog.domain.payment.enums.ReservationStatus;
 import ddog.domain.payment.port.ReservationPersist;
@@ -45,6 +46,8 @@ public class AccountService {
 
     private final VetPersist vetPersist;
     private final VetDaengleMeterPersist vetDaengleMeterPersist;
+
+    private final ChatRoomPersist chatRoomPersist;
 
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -130,6 +133,8 @@ public class AccountService {
                 .orElseThrow(() -> new VetException(VetExceptionType.VET_NOT_FOUND));
 
         vetPersist.deleteByAccountId(savedVet.getAccountId());
+        accountPersist.deleteByAccountId(accountId);
+        chatRoomPersist.deleteByWithDrawPartner(accountId);
 
         return WithdrawResp.builder()
                 .accountId(savedVet.getAccountId())
