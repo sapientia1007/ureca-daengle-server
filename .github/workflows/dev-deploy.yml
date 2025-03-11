@@ -40,7 +40,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Get changed files using git log
+      # 2. Get modified files using git log
       - name: Get modified files
         id: git_diff
         run: |
@@ -64,18 +64,33 @@ jobs:
           echo "Changed modules: ${CHANGED_MODULES[@]}"
           echo "CHANGED_MODULES=${CHANGED_MODULES[@]}" >> $GITHUB_ENV
 
-      # 4. Create application.yml
+      # 4. Filter modules based on changed files
+      - name: Filter modules to deploy
+        id: filter_modules
+        run: |
+          if [[ " ${CHANGED_MODULES[@]} " =~ " ${{ matrix.module.name }} " ]]; then
+            echo "Module ${{ matrix.module.name }} will be deployed."
+            echo "DEPLOY_THIS_MODULE=true" >> $GITHUB_ENV
+          else
+            echo "Module ${{ matrix.module.name }} will not be deployed."
+            echo "DEPLOY_THIS_MODULE=false" >> $GITHUB_ENV
+
+      # 5. Create application.yml only if module is selected for deployment
       - name: Create application.yml
         run: |
-          mkdir -p ${{ matrix.module.path }}/src/main/resources
-          echo "${{ secrets.APPLICATION_YML_TEST }}" > ${{ matrix.module.path }}/src/main/resources/application.yml
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            mkdir -p ${{ matrix.module.path }}/src/main/resources
+            echo "${{ secrets.APPLICATION_YML_TEST }}" > ${{ matrix.module.path }}/src/main/resources/application.yml
+          fi
 
-      # 5. Create .env file
+      # 6. Create .env file only if module is selected for deployment
       - name: Create .env file
         run: |
-          echo "${{ secrets.ENV_FILE_CONTENT }}" > ${{ matrix.module.path }}/.env
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            echo "${{ secrets.ENV_FILE_CONTENT }}" > ${{ matrix.module.path }}/.env
+          fi
 
-      # 6. Set up JDK and Build JAR
+      # 7. Set up JDK and Build JAR only if module is selected for deployment
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -84,24 +99,30 @@ jobs:
 
       - name: Build JAR with Gradle
         run: |
-          ./gradlew clean :${{ matrix.module.path }}:build -x test
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            ./gradlew clean :${{ matrix.module.path }}:build -x test
+          fi
 
-      # 7. Verify Build Output
+      # 8. Verify Build Output only if module is selected for deployment
       - name: Verify Build Output
-        run: ls -lh ${{ matrix.module.path }}/build/libs
+        run: |
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            ls -lh ${{ matrix.module.path }}/build/libs
+          fi
 
-      # 8. Log in to Amazon ECR
+      # 9. Log in to Amazon ECR only if module is selected for deployment
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_ROOT_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_ROOT_SECRET }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
+        if: env.DEPLOY_THIS_MODULE == 'true'
 
-      # 9. Build and Push Docker Image
+      # 10. Build and Push Docker Image only if module is selected for deployment
       - name: Build and Push Docker Image
         run: |
-          if [[ " ${CHANGED_MODULES[@]} " =~ " ${{ matrix.module.name }} " ]]; then
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
             set -e
             cd ${{ matrix.module.path }}
           
@@ -114,25 +135,29 @@ jobs:
             docker push ${{ secrets.ECR_REPOSITORY_URI }}:latest
           fi
 
-      # 10. Set up SSH
+      # 11. Set up SSH only if module is selected for deployment
       - name: Set up SSH
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          echo "StrictHostKeyChecking no" >> ~/.ssh/config
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            mkdir -p ~/.ssh
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            echo "StrictHostKeyChecking no" >> ~/.ssh/config
+          fi
 
-      # 11. Set up EC2 Host from Secrets
+      # 12. Set up EC2 Host from Secrets only if module is selected for deployment
       - name: Set up EC2 Host
         run: |
-          EC2_HOST=${{ secrets[ matrix.module.ssh_host_var ] }}
-          echo "Resolved EC2_HOST: $EC2_HOST"
-          echo "EC2_HOST=$EC2_HOST" >> $GITHUB_ENV
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            EC2_HOST=${{ secrets[ matrix.module.ssh_host_var ] }}
+            echo "Resolved EC2_HOST: $EC2_HOST"
+            echo "EC2_HOST=$EC2_HOST" >> $GITHUB_ENV
+          fi
 
-      # 12. Deploy to EC2
+      # 13. Deploy to EC2 only if module is selected for deployment
       - name: Deploy to EC2
         run: |
-          if [[ " ${CHANGED_MODULES[@]} " =~ " ${{ matrix.module.name }} " ]]; then
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
             set -e
             echo "=== Logging into EC2 ==="
             ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${EC2_HOST} << 'EOF'
@@ -170,7 +195,6 @@ jobs:
             docker ps -a --filter "name=$CONTAINER_NAME" -q | xargs -r docker stop | xargs -r docker rm || echo "No running container to stop."
 
             echo "=== Running new container ==="
-            docker run -d --name $CONTAINER_NAME -p 8080:8080 ${{ secrets.ECR_REPOSITORY_URI }}:latest || { echo "Docker run failed"; exit 1; }
-
-            echo "=== Deployment completed successfully ==="
+            docker run -d --name $CONTAINER_NAME -p 8080:8080 ${{ secrets.ECR_REPOSITORY_URI }}:latest
+            EOF
           fi
