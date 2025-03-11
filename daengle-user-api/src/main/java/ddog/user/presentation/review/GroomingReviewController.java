@@ -3,12 +3,6 @@ package ddog.user.presentation.review;
 import ddog.auth.annotation.AuthPayload;
 import ddog.auth.dto.PayloadDto;
 import ddog.auth.exception.common.CommonResponseEntity;
-<<<<<<< HEAD
-import ddog.notification.application.KakaoNotificationService;
-import ddog.user.application.ReservationService;
-import ddog.user.presentation.reservation.dto.ReservationInfo;
-=======
->>>>>>> 758eda83ec1d8cddb35096f28375a941b554e667
 import ddog.user.presentation.review.dto.request.UpdateGroomingReviewInfo;
 import ddog.user.presentation.review.dto.request.PostGroomingReviewInfo;
 import ddog.user.application.GroomingReviewService;
