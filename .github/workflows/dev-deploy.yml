@@ -45,7 +45,7 @@ jobs:
         id: git_diff
         run: |
           echo "Getting modified files..."
-          MODIFIED_FILES=$(git diff --name-only refs/pull/${{ github.event.pull_request.number }}/merge...$GITHUB_SHA | sort -u)
+          MODIFIED_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...$GITHUB_SHA | sort -u)
           echo "Modified files: $MODIFIED_FILES"
           echo "MODIFIED_FILES=$MODIFIED_FILES" >> $GITHUB_ENV
 
