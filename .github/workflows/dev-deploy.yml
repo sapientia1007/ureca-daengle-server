@@ -12,44 +12,34 @@ jobs:
         module:
           - name: daengle-payment
             path: daengle-payment-api
-            ssh_host_var: SSH_PAYMENT_HOST
           - name: daengle-user
             path: daengle-user-api
-            ssh_host_var: SSH_USER_HOST
           - name: daengle-vet
             path: daengle-vet-api
-            ssh_host_var: SSH_VET_HOST
           - name: daengle-groomer
             path: daengle-groomer-api
-            ssh_host_var: SSH_GROOMER_HOST
           - name: daengle-chat
             path: daengle-chat-api
-            ssh_host_var: SSH_CHAT_HOST
       max-parallel: 1
 
     env:
       SSH_USER: ${{ secrets.SSH_USER }}
-      SSH_PAYMENT_HOST: ${{ secrets.SSH_PAYMENT_HOST }}
-      SSH_USER_HOST: ${{ secrets.SSH_USER_HOST }}
-      SSH_VET_HOST: ${{ secrets.SSH_VET_HOST }}
-      SSH_GROOMER_HOST: ${{ secrets.SSH_GROOMER_HOST }}
-      SSH_CHAT_HOST: ${{ secrets.SSH_CHAT_HOST }}
 
     steps:
-      # 1. Checkout Repository
+      # 1. 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Get changed files using git log
+      # 2. 변경된 파일 확인
       - name: Get modified files
         id: git_diff
         run: |
-          echo "Getting modified files..."
+          echo "변경된 파일을 확인하는 중..."
           MODIFIED_FILES=$(git diff --name-only HEAD~1 HEAD | sort -u)
-          echo "Modified files: $MODIFIED_FILES"
+          echo "변경된 파일: $MODIFIED_FILES"
           echo "MODIFIED_FILES=$MODIFIED_FILES" >> $GITHUB_ENV
 
-      # 3. Determine which modules to deploy based on modified files
+      # 3. 변경된 모듈 확인
       - name: Determine changed modules
         id: determine_modules
         run: |
@@ -61,21 +51,21 @@ jobs:
               fi
             done
           done
-          echo "Changed modules: ${CHANGED_MODULES[@]}"
+          echo "변경된 모듈: ${CHANGED_MODULES[@]}"
           echo "CHANGED_MODULES=${CHANGED_MODULES[@]}" >> $GITHUB_ENV
 
-      # 4. Create application.yml
+      # 4. application.yml 생성
       - name: Create application.yml
         run: |
           mkdir -p ${{ matrix.module.path }}/src/main/resources
           echo "${{ secrets.APPLICATION_YML_TEST }}" > ${{ matrix.module.path }}/src/main/resources/application.yml
 
-      # 5. Create .env file
+      # 5. .env 파일 생성
       - name: Create .env file
         run: |
           echo "${{ secrets.ENV_FILE_CONTENT }}" > ${{ matrix.module.path }}/.env
 
-      # 6. Set up JDK and Build JAR
+      # 6. JDK 설정 및 빌드
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -86,43 +76,29 @@ jobs:
         run: |
           ./gradlew clean :${{ matrix.module.path }}:build -x test
 
-      # 7. Verify Build Output
+      # 7. 빌드 결과 확인
       - name: Verify Build Output
         run: ls -lh ${{ matrix.module.path }}/build/libs
 
-      # 8. Log in to Amazon ECR
-      - name: Log in to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_ROOT_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_ROOT_SECRET }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-
-      # 9. Build and Push Docker Image (로그만 출력)
-      - name: Build and Push Docker Image
+      # 8. Docker 빌드 및 푸시 (로그만 출력)
+      - name: Log Docker Build and Push
         run: |
-          echo "Checking changed modules..."
-          echo "Changed Modules: ${CHANGED_MODULES[@]}"
-          echo "Skipping actual Docker build and push."
+          echo "변경된 모듈 확인 중..."
+          echo "변경된 모듈: ${CHANGED_MODULES[@]}"
+          echo "실제 Docker 빌드 및 푸시 작업은 건너뜁니다."
 
-      # 10. Set up SSH
-      - name: Set up SSH
+      # 9. SSH 설정 (로그만 출력)
+      - name: Log SSH Setup
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          echo "StrictHostKeyChecking no" >> ~/.ssh/config
+          echo "SSH 설정 로그: 해당 작업은 건너뜁니다."
 
-      # 11. Set up EC2 Host from Secrets
-      - name: Set up EC2 Host
+      # 10. EC2 호스트 출력 (로그만 출력)
+      - name: Log EC2 Host
         run: |
-          EC2_HOST=${{ secrets[ matrix.module.ssh_host_var ] }}
-          echo "Resolved EC2_HOST: $EC2_HOST"
-          echo "EC2_HOST=$EC2_HOST" >> $GITHUB_ENV
+          echo "EC2 호스트 정보 출력 (실제 배포는 하지 않음)"
+          echo "변경된 모듈에 해당하는 EC2 호스트 정보는 추적됩니다만, 실제 배포 작업은 수행되지 않습니다."
 
-      # 12. Deploy to EC2 (로그만 출력)
-      - name: Deploy to EC2
+      # 11. EC2 배포 (로그만 출력)
+      - name: Log EC2 Deployment
         run: |
-          echo "=== Logging into EC2 ==="
-          echo "EC2_HOST: ${{ secrets[ matrix.module.ssh_host_var ] }}"
-          echo "Skipping actual SSH login and deployment steps."
+          echo "EC2 배포 작업 로그 출력 (실제 배포는 하지 않음)"
