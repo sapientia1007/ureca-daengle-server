@@ -51,10 +51,6 @@ jobs:
           echo "Base commit: $BASE_SHA"
           echo "Head commit: $HEAD_SHA"
           
-          echo "Current branch is: $GITHUB_REF"
-          git checkout $GITHUB_REF  # 현재 브랜치로 체크아웃
-          echo "Current branch is: $GITHUB_REF"
-          
           CHANGED_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA)
           echo "Changed files: $CHANGED_FILES"
           
