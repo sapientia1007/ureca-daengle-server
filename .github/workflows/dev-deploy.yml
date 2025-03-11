@@ -64,11 +64,11 @@ jobs:
         run: |
           CHANGED_MODULES=()
           for module in $CHANGED_FILES; do
-            for item in "${{ matrix.module }}"; do
-              if [[ $module == *"${item.path}"* ]]; then
-                CHANGED_MODULES+=("${item.name}")
-              fi
-            done
+          for module_info in "${{ matrix.module }}"; do
+          if [[ $module == *"${module_info.path}"* ]]; then
+          CHANGED_MODULES+=("${module_info.name}")
+          fi
+          done
           done
           echo "Changed modules: ${CHANGED_MODULES[@]}"
           echo "CHANGED_MODULES=${CHANGED_MODULES[@]}" >> $GITHUB_ENV
