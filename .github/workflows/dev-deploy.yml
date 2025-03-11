@@ -12,34 +12,44 @@ jobs:
         module:
           - name: daengle-payment
             path: daengle-payment-api
+            ssh_host_var: SSH_PAYMENT_HOST
           - name: daengle-user
             path: daengle-user-api
+            ssh_host_var: SSH_USER_HOST
           - name: daengle-vet
             path: daengle-vet-api
+            ssh_host_var: SSH_VET_HOST
           - name: daengle-groomer
             path: daengle-groomer-api
+            ssh_host_var: SSH_GROOMER_HOST
           - name: daengle-chat
             path: daengle-chat-api
+            ssh_host_var: SSH_CHAT_HOST
       max-parallel: 1
 
     env:
       SSH_USER: ${{ secrets.SSH_USER }}
+      SSH_PAYMENT_HOST: ${{ secrets.SSH_PAYMENT_HOST }}
+      SSH_USER_HOST: ${{ secrets.SSH_USER_HOST }}
+      SSH_VET_HOST: ${{ secrets.SSH_VET_HOST }}
+      SSH_GROOMER_HOST: ${{ secrets.SSH_GROOMER_HOST }}
+      SSH_CHAT_HOST: ${{ secrets.SSH_CHAT_HOST }}
 
     steps:
-      # 1. 코드 체크아웃
+      # 1. Checkout Repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. 변경된 파일 확인
+      # 2. Get changed files using git log
       - name: Get modified files
         id: git_diff
         run: |
-          echo "변경된 파일을 확인하는 중..."
+          echo "Getting modified files..."
           MODIFIED_FILES=$(git diff --name-only HEAD~1 HEAD | sort -u)
-          echo "변경된 파일: $MODIFIED_FILES"
+          echo "Modified files: $MODIFIED_FILES"
           echo "MODIFIED_FILES=$MODIFIED_FILES" >> $GITHUB_ENV
 
-      # 3. 변경된 모듈 확인
+      # 3. Determine which modules to deploy based on modified files
       - name: Determine changed modules
         id: determine_modules
         run: |
@@ -51,21 +61,21 @@ jobs:
               fi
             done
           done
-          echo "변경된 모듈: ${CHANGED_MODULES[@]}"
+          echo "Changed modules: ${CHANGED_MODULES[@]}"
           echo "CHANGED_MODULES=${CHANGED_MODULES[@]}" >> $GITHUB_ENV
 
-      # 4. application.yml 생성
+      # 4. Create application.yml
       - name: Create application.yml
         run: |
           mkdir -p ${{ matrix.module.path }}/src/main/resources
           echo "${{ secrets.APPLICATION_YML_TEST }}" > ${{ matrix.module.path }}/src/main/resources/application.yml
 
-      # 5. .env 파일 생성
+      # 5. Create .env file
       - name: Create .env file
         run: |
           echo "${{ secrets.ENV_FILE_CONTENT }}" > ${{ matrix.module.path }}/.env
 
-      # 6. JDK 설정 및 빌드
+      # 6. Set up JDK and Build JAR
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -76,29 +86,91 @@ jobs:
         run: |
           ./gradlew clean :${{ matrix.module.path }}:build -x test
 
-      # 7. 빌드 결과 확인
+      # 7. Verify Build Output
       - name: Verify Build Output
         run: ls -lh ${{ matrix.module.path }}/build/libs
 
-      # 8. Docker 빌드 및 푸시 (로그만 출력)
-      - name: Log Docker Build and Push
-        run: |
-          echo "변경된 모듈 확인 중..."
-          echo "변경된 모듈: ${CHANGED_MODULES[@]}"
-          echo "실제 Docker 빌드 및 푸시 작업은 건너뜁니다."
+      # 8. Log in to Amazon ECR
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_ROOT_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_ROOT_SECRET }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
 
-      # 9. SSH 설정 (로그만 출력)
-      - name: Log SSH Setup
+      # 9. Build and Push Docker Image
+      - name: Build and Push Docker Image
         run: |
-          echo "SSH 설정 로그: 해당 작업은 건너뜁니다."
+          if [[ " ${CHANGED_MODULES[@]} " =~ " ${{ matrix.module.name }} " ]]; then
+            set -e
+            cd ${{ matrix.module.path }}
+          
+            IMAGE_TAG="${{ matrix.module.name }}-$(date +%Y%m%d%H%M%S)"
+          
+            echo "Building Docker image..."
+            docker build --platform linux/amd64 --build-arg JAR_FILE=build/libs/${{ matrix.module.name }}-api-0.0.1-SNAPSHOT.jar -t ${{ secrets.ECR_REPOSITORY_URI }}:$IMAGE_TAG .
+            docker tag ${{ secrets.ECR_REPOSITORY_URI }}:$IMAGE_TAG ${{ secrets.ECR_REPOSITORY_URI }}:latest
+            docker push ${{ secrets.ECR_REPOSITORY_URI }}:$IMAGE_TAG
+            docker push ${{ secrets.ECR_REPOSITORY_URI }}:latest
+          fi
 
-      # 10. EC2 호스트 출력 (로그만 출력)
-      - name: Log EC2 Host
+      # 10. Set up SSH
+      - name: Set up SSH
         run: |
-          echo "EC2 호스트 정보 출력 (실제 배포는 하지 않음)"
-          echo "변경된 모듈에 해당하는 EC2 호스트 정보는 추적됩니다만, 실제 배포 작업은 수행되지 않습니다."
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "StrictHostKeyChecking no" >> ~/.ssh/config
 
-      # 11. EC2 배포 (로그만 출력)
-      - name: Log EC2 Deployment
+      # 11. Set up EC2 Host from Secrets
+      - name: Set up EC2 Host
         run: |
-          echo "EC2 배포 작업 로그 출력 (실제 배포는 하지 않음)"
+          EC2_HOST=${{ secrets[ matrix.module.ssh_host_var ] }}
+          echo "Resolved EC2_HOST: $EC2_HOST"
+          echo "EC2_HOST=$EC2_HOST" >> $GITHUB_ENV
+
+      # 12. Deploy to EC2
+      - name: Deploy to EC2
+        run: |
+          if [[ " ${CHANGED_MODULES[@]} " =~ " ${{ matrix.module.name }} " ]]; then
+            set -e
+            echo "=== Logging into EC2 ==="
+            ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${EC2_HOST} << 'EOF'
+          
+            # EC2에서 AWS 인증 정보 설정
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            export AWS_REGION="${{ secrets.AWS_REGION }}"
+          
+            # AWS ECR에 로그인
+            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URI }}
+          
+            MODULE=${{ matrix.module.name }}
+            IMAGE_TAG=${IMAGE_TAG}
+            CONTAINER_NAME="${{ matrix.module.name }}-container"
+          
+            echo "=== Cleaning up old Docker images ==="
+            # 최신 6개 이미지를 제외한 나머지 삭제
+            IMAGE_COUNT=$(docker images -q | wc -l)
+            if [ "$IMAGE_COUNT" -gt 6 ]; then
+              echo "Deleting old images, keeping the latest 6..."
+              docker images -q | tail -n +7 | xargs -r docker rmi -f
+            else
+              echo "No old images to delete. Current image count: $IMAGE_COUNT"
+            fi
+          
+            # Pull latest image
+            docker pull ${{ secrets.ECR_REPOSITORY_URI }}:latest || { echo "Docker pull failed"; exit 1; }
+          
+            echo "=== Verifying Docker images ==="
+            docker images  
+
+            echo "=== Stopping and removing existing container ==="
+            docker ps --filter "name=$CONTAINER_NAME" | grep $CONTAINER_NAME && docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME || echo "No running container to stop."
+            docker ps -a --filter "name=$CONTAINER_NAME" -q | xargs -r docker stop | xargs -r docker rm || echo "No running container to stop."
+
+            echo "=== Running new container ==="
+            docker run -d --name $CONTAINER_NAME -p 8080:8080 ${{ secrets.ECR_REPOSITORY_URI }}:latest || { echo "Docker run failed"; exit 1; }
+
+            echo "=== Deployment completed successfully ==="
+          fi
