@@ -45,7 +45,7 @@ jobs:
         id: git_diff
         run: |
           echo "Getting modified files..."
-          MODIFIED_FILES=$(git diff --name-only HEAD~1 HEAD | sort -u)
+          MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | sort -u)
           echo "Modified files: $MODIFIED_FILES"
           echo "MODIFIED_FILES=$MODIFIED_FILES" >> $GITHUB_ENV
 
