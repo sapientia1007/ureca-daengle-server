@@ -63,12 +63,15 @@ jobs:
         id: determine_modules
         run: |
           CHANGED_MODULES=()
+          # CHANGED_FILES에는 수정된 파일 목록이 들어있을 것
           for module in $CHANGED_FILES; do
-          for module_info in "${{ matrix.module }}"; do
-          if [[ $module == *"${module_info.path}"* ]]; then
-          CHANGED_MODULES+=("${module_info.name}")
-          fi
-          done
+            # 매트릭스의 각 모듈에 대해 확인
+            for module_info in "${{ matrix.module }}"; do
+              # 각 module의 path 값을 비교
+              if [[ $module == *"${module_info.path}"* ]]; then
+                CHANGED_MODULES+=("${module_info.name}")
+              fi
+            done
           done
           echo "Changed modules: ${CHANGED_MODULES[@]}"
           echo "CHANGED_MODULES=${CHANGED_MODULES[@]}" >> $GITHUB_ENV
