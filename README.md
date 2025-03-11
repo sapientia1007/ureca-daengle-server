@@ -1,29 +1,38 @@
 ![image](https://github.com/user-attachments/assets/1571a693-841e-471b-8b45-4efba5601e26)
 
 <div align=center>
-  <h1> 🐶댕글 서비스의 핵심 키워드!🐶 </h2>
-  https://www.daengle.com
+  <h1> 🐶 Hello Dangle World! 🐶 </h2>
+
   <br>
   <br>
+<<<<<<< HEAD
   <strong>댕글</strong> : 댕댕이 미용 및 건강 관리 중계 플랫폼
+=======
+  <strong>댕글</strong> : 애견 미용 및 건강 관리 중계 플랫폼
+>>>>>>> 758eda83ec1d8cddb35096f28375a941b554e667
   <br>
 
 
 </div>
+<br />
+<br />
 
-## 📦 멀티 모듈
-### 🔌 Ports & Adapters Architecture
-외부 라이브러리(JPA)로부터 도메인 객체와 비즈니스 로직 의존성을 역전 시켰습니다.
-각 가능에서 테스트 및 모니터링을 통해 기술스텍이 변경되는 일이 잦았습니다. 이때, 어뎁터만 변경해줌으로써 유연한 확장이 가능했습니다.
+## 🏗️ 시스템 아키텍처
+
+![아키텍처이벤트](https://github.com/user-attachments/assets/8efcdec5-005f-4292-a705-f1c2957eced3)
 
 <br />
 <br />
 
-![image](https://github.com/user-attachments/assets/cc1ff646-ccd0-4514-88da-1c047255b323)
+## 📦 레포지토리 구조도
+
+![멀티모듈](https://github.com/user-attachments/assets/4a430e36-25a0-4176-ab2c-d89b94175c49)
+
 
 <br />
 <br />
 
+<<<<<<< HEAD
 ### 🚨 장애대응
 
 외부 API를 사용하는 기능들에 타임아웃을 설정했습니다.
@@ -58,18 +67,21 @@ STOMP 프로토콜을 활용해 WebSocket 기반의 실시간 통신을 지원�
 
 <br />
 <br />
+=======
+>>>>>>> 758eda83ec1d8cddb35096f28375a941b554e667
 
 ## 💵 결제 시스템
 
 <br />
 
-<div align=center>
-  
-![image](https://github.com/user-attachments/assets/015616e7-281f-4e0a-a510-55f410b74f4c)
-![image](https://github.com/user-attachments/assets/14ebfb68-d8cc-4940-a0c9-330df5c7893c)
+
+![페이먼츠_플로우](https://github.com/user-attachments/assets/8144f1e0-22db-43d8-99eb-53144f8bca67)
+
+
 </div>
 
 <br />
+
 
 ## 🕵️ 금칙어 필터링
 
@@ -83,18 +95,21 @@ STOMP 프로토콜을 활용해 WebSocket 기반의 실시간 통신을 지원�
 <br />
 
 ## 🧰 기술 스택
-![image](https://github.com/user-attachments/assets/1f16efb5-5d72-449c-b3fb-bbe83b2446d1)
+![댕글 기술스택](https://github.com/user-attachments/assets/aa25f2eb-46af-4cb9-9480-d47fb8c11c97)
 <br />
 <br />
 
-## 🏗️ 시스템 아키텍처
-![image](https://github.com/user-attachments/assets/2b25a36b-b837-4795-ab0b-8c9ad150cd9d)
-
-<br />
-<br />
 
 ## 🚢 CI/CD
-![image](https://github.com/user-attachments/assets/3a0b13ec-0e92-48da-bc65-52d516f7ee32)
+
+![CICD_FLOW](https://github.com/user-attachments/assets/b1b341d9-c94e-42dc-be5a-a54e8f5b7d61)
+
+<br />
+<br />
+
+## 💬 DynamoDB 설계도
+
+![채팅 플로우](https://github.com/user-attachments/assets/ffacb447-6102-45ce-b22c-1fee66008471)
 
 <br />
 <br />
@@ -113,7 +128,7 @@ STOMP 프로토콜을 활용해 WebSocket 기반의 실시간 통신을 지원�
 | <a href="https://github.com/myeonginjin"> <img src="https://avatars.githubusercontent.com/myeonginjin" width=200px alt="_"/> </a> | <a href="https://github.com/alexization"> <img src="https://avatars.githubusercontent.com/alexization" width=200px alt="_"/> </a> | <a href="https://github.com/sapientia1007"> <img src="https://avatars.githubusercontent.com/sapientia1007" width=200px alt="_"/> </a> |
 |                                                               백엔드                                                                |                                                            백엔드                                                             |                                                              백엔드                                                               |
 |                                                 팀원들이 보는 명인은                                                                    |                                                       팀원들이 보는 효석은                                                        |                                                         팀원들이 보는 지혜는                                                        |
-| 🕵️‍부지런한 해결사 <br/> 👩‍💻개발이 제일 좋아, 찐 개발자 <br/> 🍜밥 잘 먹고 코드 맛있게 짜는 사람 <br/> 🚗맡은 일은 끝까지 간다! 진격의 개발자|🤩분위기 메이커<br/>😁항상 웃긴 재밌는 사람<br/>🏃‍매일같이 문열고 문닫는 성실왕<br/>👨‍🏫사소한 디테일 놓치지 않는 꼼꼼왕|🥳 언제나 맑은 긍정왕 <br />🔫 듬직한 트러블 슈터 <br />🤩항상 밝은 분위기 메이커 <br />🎯 버그 꼼짝마! 백발백중 버그 퇴치|
+| 🕵 이슈의 해결책을 찾아내는 탐구가 <br/> 👩‍💻 맡은 일은 끝까지! 신뢰형 개발자 <br/> 🚨 한번 시작한 일은 끝을 보는 불도저 <br/> 😤 열정 가득, 엉덩이가 무거운 개발자|🤩 CS부터 파고들고 활용하는 개발자<br/>🤔 코드 하나하나 고민하는 찐 개발자<br/>🧹 리펙토링은 나에게, 최적화의 달인<br/>🥘 기본에 충실한 국밥 개발자|🤓 너무 꼼꼼하고 철저한 변태 개발자 <br />📑 문서 정리 끝판왕, 개발 문서 달인 <br/> 😏 꼼꼼함과 효율성을 겸비한 개발자 <br />😁 답답한건 싫은 효율 끝판왕 개발자|
 
 <br />
 <br />
@@ -121,11 +136,19 @@ STOMP 프로토콜을 활용해 WebSocket 기반의 실시간 통신을 지원�
 ## 🔨 작업 및 역할 분담
 <div align=center>
   
+<<<<<<< HEAD
 | 팀원  | 사진 | 역할                                                            |
 |-----------------|-----------------|---------------------------------------------------------------|
 | 진명인   |  <img src="https://avatars.githubusercontent.com/myeonginjin" alt="진명인" width="100"> | <ul><li>인프라 구축</li><li>페이먼츠 시스템</li><li>금칙어 필터링 시스템</li></ul> |
 | 백효석   |  <img src="https://avatars.githubusercontent.com/alexization" alt="백효석" width="100">| <ul><li>인증/인가 시스템</li><li>견적 입찰 시스템</li>                      |
 | 심지혜   |  <img src="https://avatars.githubusercontent.com/sapientia1007" alt="심지혜" width="100">    | <ul><li>실시간 채팅 시스템</li><li>실시간 알림 시스템</li></ul>               |
+=======
+| 팀원  | 사진 | 역할 |
+|-----------------|-----------------|-----------------|
+| 진명인   |  <img src="https://avatars.githubusercontent.com/myeonginjin" alt="진명인" width="100"> | <ul><li>아키텍처·인프라</li><li>페이먼츠 시스템</li><li>금칙어 필터링 시스템</li></ul>     |
+| 백효석   |  <img src="https://avatars.githubusercontent.com/alexization" alt="백효석" width="100">| <ul><li>인증/인가 시스템</li><li>견적 입찰 시스템</li> |
+| 심지혜   |  <img src="https://avatars.githubusercontent.com/sapientia1007" alt="심지혜" width="100">    |<ul><li>실시간 채팅 시스템</li><li>검색 시스템</li></ul>  |
+>>>>>>> 758eda83ec1d8cddb35096f28375a941b554e667
 
 </div>
 <br/> 

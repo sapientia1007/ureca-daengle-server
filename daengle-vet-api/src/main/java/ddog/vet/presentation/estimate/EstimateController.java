@@ -1,8 +1,8 @@
 package ddog.vet.presentation.estimate;
 
+import ddog.auth.annotation.AuthPayload;
 import ddog.auth.dto.PayloadDto;
 import ddog.auth.exception.common.CommonResponseEntity;
-import ddog.notification.application.KakaoNotificationService;
 import ddog.vet.application.EstimateService;
 import ddog.vet.presentation.estimate.dto.CreatePendingEstimateReq;
 import ddog.vet.presentation.estimate.dto.EstimateDetail;
@@ -20,14 +20,13 @@ import static ddog.auth.exception.common.CommonResponseEntity.success;
 public class EstimateController {
 
     private final EstimateService estimateService;
-    private final KakaoNotificationService kakaoNotificationService;
 
     private final Environment environment;
 
     /* (신규) 일반 견적서들 리스트 조회 */
     @GetMapping("/general/list")
     public CommonResponseEntity<EstimateInfo.General> findGeneralEstimates(
-            PayloadDto payloadDto,
+            @AuthPayload PayloadDto payloadDto,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
@@ -37,7 +36,7 @@ public class EstimateController {
     /* (신규) 지정 견적서들 리스트 조회 */
     @GetMapping("/designation/list")
     public CommonResponseEntity<EstimateInfo.Designation> findDesignationEstimates(
-            PayloadDto payloadDto,
+            @AuthPayload PayloadDto payloadDto,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
@@ -52,9 +51,9 @@ public class EstimateController {
 
     /* 병원 -> 사용자 (대기) 진료 견적서 작성 */
     @PostMapping
-    public CommonResponseEntity<EstimateResp> createEstimate(@RequestBody CreatePendingEstimateReq request, PayloadDto payloadDto) {
+    public CommonResponseEntity<EstimateResp> createEstimate(@RequestBody CreatePendingEstimateReq request,
+                                                             @AuthPayload PayloadDto payloadDto) {
         EstimateInfo.EstimateUserInfo savedEstimate = estimateService.findByUserInfoByEstimateId(request.getId());
-        kakaoNotificationService.sendOneTalk(savedEstimate.getUserNickname(), savedEstimate.getUserPhone(), environment.getProperty("templateId.ESTIMATED"));
         return success(estimateService.createPendingEstimate(request, payloadDto.getAccountId()));
     }
 }

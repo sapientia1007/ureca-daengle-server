@@ -1,5 +1,6 @@
 package ddog.user.presentation.account;
 
+import ddog.auth.annotation.AuthPayload;
 import ddog.auth.dto.PayloadDto;
 import ddog.auth.exception.common.CommonResponseEntity;
 import ddog.user.application.AccountService;
@@ -37,8 +38,13 @@ public class AccountController {
         return success(accountService.signUpWithoutPet(request, response));
     }
 
+<<<<<<< HEAD
     @GetMapping("/profile")
     public CommonResponseEntity<ProfileInfo.UpdatePage> getUserProfileInfo(PayloadDto payloadDto) {
+=======
+    @GetMapping("/info")
+    public CommonResponseEntity<ProfileInfo.UpdatePage> getUserProfileInfo(@AuthPayload PayloadDto payloadDto) {
+>>>>>>> 758eda83ec1d8cddb35096f28375a941b554e667
         return success(accountService.getUserProfileInfo(payloadDto.getAccountId()));
     }
 
@@ -53,7 +59,7 @@ public class AccountController {
     }
 
     @GetMapping("/pet-info")
-    public CommonResponseEntity<PetInfo> getPetInfo(PayloadDto payloadDto) {
+    public CommonResponseEntity<PetInfo> getPetInfo(@AuthPayload PayloadDto payloadDto) {
         return success(accountService.getPetInfo(payloadDto.getAccountId()));
     }
 
@@ -68,12 +74,17 @@ public class AccountController {
     }
 
     @GetMapping("/withdraw-info")
-    public CommonResponseEntity<WithdrawInfoResp> getWithdrawInfo(PayloadDto payloadDto) {
+    public CommonResponseEntity<WithdrawInfoResp> getWithdrawInfo(@AuthPayload PayloadDto payloadDto) {
         return success(accountService.getWithdrawInfo(payloadDto.getAccountId()));
     }
 
+<<<<<<< HEAD
     @DeleteMapping("/profile")
     public CommonResponseEntity<WithdrawResp> withdraw(PayloadDto payloadDto) {
+=======
+    @DeleteMapping("/info")
+    public CommonResponseEntity<WithdrawResp> withdraw(@AuthPayload PayloadDto payloadDto) {
+>>>>>>> 758eda83ec1d8cddb35096f28375a941b554e667
         return success(accountService.withdraw(payloadDto.getAccountId()));
     }
 }
