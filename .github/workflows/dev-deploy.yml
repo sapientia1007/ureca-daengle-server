@@ -38,7 +38,7 @@ jobs:
     steps:
       # 1. Checkout Repository
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -49,11 +49,11 @@ jobs:
           echo "Getting modified files..."
           BASE_SHA=${{ github.event.before }}  # push event에서는 before 값 사용
           HEAD_SHA=${{ github.sha }}  # 현재 푸시된 커밋 SHA 값
-      
+          
           echo "Base commit: $BASE_SHA"
           echo "Head commit: $HEAD_SHA"
           
-          CHANGED_FILES = $(git diff --name-only $BASE_SHA $HEAD_SHA)
+          CHANGED_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA)
           echo "Changed files: $CHANGED_FILES"
           
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
