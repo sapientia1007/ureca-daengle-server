@@ -47,9 +47,11 @@ jobs:
           echo "Getting modified files..."
           BASE_SHA=${{ github.event.before }}  # push event에서는 before 값 사용
           HEAD_SHA=${{ github.sha }}  # 현재 푸시된 커밋 SHA 값
-
+      
           echo "Base commit: $BASE_SHA"
           echo "Head commit: $HEAD_SHA"
+          
+          git checkout $GITHUB_REF  # 현재 브랜치로 체크아웃
           
           CHANGED_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA)
           echo "Changed files: $CHANGED_FILES"
