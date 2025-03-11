@@ -158,6 +158,7 @@ jobs:
       # 13. Deploy to EC2 only if module is selected for deployment
       - name: Deploy to EC2
         run: |
+          echo "Deploy_THIS_MODULE: ${{ env.DEPLOY_THIS_MODULE }}"  # DEPLOY_THIS_MODULE 값 확인
           if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
             set -e
             echo "=== Logging into EC2 ==="
@@ -190,12 +191,14 @@ jobs:
           
             echo "=== Verifying Docker images ==="
             docker images  
-
+          
             echo "=== Stopping and removing existing container ==="
             docker ps --filter "name=$CONTAINER_NAME" | grep $CONTAINER_NAME && docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME || echo "No running container to stop."
             docker ps -a --filter "name=$CONTAINER_NAME" -q | xargs -r docker stop | xargs -r docker rm || echo "No running container to stop."
-
+          
             echo "=== Running new container ==="
             docker run -d --name $CONTAINER_NAME -p 8080:8080 ${{ secrets.ECR_REPOSITORY_URI }}:latest
             EOF
+          else
+            echo "Skipping deployment as DEPLOY_THIS_MODULE is not true."
           fi
