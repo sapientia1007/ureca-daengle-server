@@ -74,6 +74,7 @@ jobs:
           else
             echo "Module ${{ matrix.module.name }} will not be deployed."
             echo "DEPLOY_THIS_MODULE=false" >> $GITHUB_ENV
+          fi
 
       # 5. Create application.yml only if module is selected for deployment
       - name: Create application.yml
