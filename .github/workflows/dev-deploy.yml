@@ -1,7 +1,7 @@
 name: Deploy to Develop EC2
 on:
   push:
-    branches: [ "NONE" ]
+    branches: ["refactoring-2"]
 
 jobs:
   deploy:
@@ -22,8 +22,8 @@ jobs:
           - name: daengle-groomer
             path: daengle-groomer-api
             ssh_host_var: SSH_GROOMER_HOST
-          - name : daengle-chat
-            path : daengle-chat-api
+          - name: daengle-chat
+            path: daengle-chat-api
             ssh_host_var: SSH_CHAT_HOST
       max-parallel: 1
 
@@ -33,25 +33,65 @@ jobs:
       SSH_USER_HOST: ${{ secrets.SSH_USER_HOST }}
       SSH_VET_HOST: ${{ secrets.SSH_VET_HOST }}
       SSH_GROOMER_HOST: ${{ secrets.SSH_GROOMER_HOST }}
-      SSH_CHAT_HOST : ${{ secrets.SSH_CHAT_HOST }}
+      SSH_CHAT_HOST: ${{ secrets.SSH_CHAT_HOST }}
 
     steps:
       # 1. Checkout Repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Create application.yml
+      # 2. Get modified files using git log
+      - name: Get modified files
+        id: git_diff
+        run: |
+          echo "Getting modified files..."
+          MODIFIED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | sort -u)
+          echo "Modified files: $MODIFIED_FILES"
+          echo "MODIFIED_FILES=$MODIFIED_FILES" >> $GITHUB_ENV
+
+      # 3. Determine which modules to deploy based on modified files
+      - name: Determine changed modules
+        id: determine_modules
+        run: |
+          CHANGED_MODULES=()
+          for module in $MODIFIED_FILES; do
+            for item in "${{ matrix.module }}"; do
+              if [[ $module == *"${item.path}"* ]]; then
+                CHANGED_MODULES+=("${item.name}")
+              fi
+            done
+          done
+          echo "Changed modules: ${CHANGED_MODULES[@]}"
+          echo "CHANGED_MODULES=${CHANGED_MODULES[@]}" >> $GITHUB_ENV
+
+      # 4. Filter modules based on changed files
+      - name: Filter modules to deploy
+        id: filter_modules
+        run: |
+          if [[ " ${CHANGED_MODULES[@]} " =~ " ${{ matrix.module.name }} " ]]; then
+            echo "Module ${{ matrix.module.name }} will be deployed."
+            echo "DEPLOY_THIS_MODULE=true" >> $GITHUB_ENV
+          else
+            echo "Module ${{ matrix.module.name }} will not be deployed."
+            echo "DEPLOY_THIS_MODULE=false" >> $GITHUB_ENV
+          fi
+
+      # 5. Create application.yml only if module is selected for deployment
       - name: Create application.yml
         run: |
-          mkdir -p ${{ matrix.module.path }}/src/main/resources
-          echo "${{ secrets.APPLICATION_YML_TEST }}" > ${{ matrix.module.path }}/src/main/resources/application.yml
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            mkdir -p ${{ matrix.module.path }}/src/main/resources
+            echo "${{ secrets.APPLICATION_YML_TEST }}" > ${{ matrix.module.path }}/src/main/resources/application.yml
+          fi
 
-      # 3. Create .env file
+      # 6. Create .env file only if module is selected for deployment
       - name: Create .env file
         run: |
-          echo "${{ secrets.ENV_FILE_CONTENT }}" > ${{ matrix.module.path }}/.env
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            echo "${{ secrets.ENV_FILE_CONTENT }}" > ${{ matrix.module.path }}/.env
+          fi
 
-      # 4. Set up JDK and Build JAR
+      # 7. Set up JDK and Build JAR only if module is selected for deployment
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -60,89 +100,106 @@ jobs:
 
       - name: Build JAR with Gradle
         run: |
-          ./gradlew clean :${{ matrix.module.path }}:build -x test
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            ./gradlew clean :${{ matrix.module.path }}:build -x test
+          fi
 
-      # 5. Verify Build Output
+      # 8. Verify Build Output only if module is selected for deployment
       - name: Verify Build Output
-        run: ls -lh ${{ matrix.module.path }}/build/libs
+        run: |
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            ls -lh ${{ matrix.module.path }}/build/libs
+          fi
 
-      # 6. Log in to Amazon ECR
+      # 9. Log in to Amazon ECR only if module is selected for deployment
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_ROOT_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_ROOT_SECRET }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
+        if: env.DEPLOY_THIS_MODULE == 'true'
 
-      # 7. Build and Push Docker Image
+      # 10. Build and Push Docker Image only if module is selected for deployment
       - name: Build and Push Docker Image
         run: |
-          set -e
-          cd ${{ matrix.module.path }}
-                    
-          IMAGE_TAG="${{ matrix.module.name }}-$(date +%Y%m%d%H%M%S)"
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            set -e
+            cd ${{ matrix.module.path }}
           
-          echo "Building Docker image..."
-          docker build --platform linux/amd64 --build-arg JAR_FILE=build/libs/${{ matrix.module.name }}-api-0.0.1-SNAPSHOT.jar -t ${{ secrets.ECR_REPOSITORY_URI }}:$IMAGE_TAG .
-          docker tag ${{ secrets.ECR_REPOSITORY_URI }}:$IMAGE_TAG ${{ secrets.ECR_REPOSITORY_URI }}:latest
-          docker push ${{ secrets.ECR_REPOSITORY_URI }}:$IMAGE_TAG
-          docker push ${{ secrets.ECR_REPOSITORY_URI }}:latest
+            IMAGE_TAG="${{ matrix.module.name }}-$(date +%Y%m%d%H%M%S)"
+          
+            echo "Building Docker image..."
+            docker build --platform linux/amd64 --build-arg JAR_FILE=build/libs/${{ matrix.module.name }}-api-0.0.1-SNAPSHOT.jar -t ${{ secrets.ECR_REPOSITORY_URI }}:$IMAGE_TAG .
+            docker tag ${{ secrets.ECR_REPOSITORY_URI }}:$IMAGE_TAG ${{ secrets.ECR_REPOSITORY_URI }}:latest
+            docker push ${{ secrets.ECR_REPOSITORY_URI }}:$IMAGE_TAG
+            docker push ${{ secrets.ECR_REPOSITORY_URI }}:latest
+          fi
 
-      # 8. Set up SSH
+      # 11. Set up SSH only if module is selected for deployment
       - name: Set up SSH
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          echo "StrictHostKeyChecking no" >> ~/.ssh/config
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            mkdir -p ~/.ssh
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            echo "StrictHostKeyChecking no" >> ~/.ssh/config
+          fi
 
-      # 9. Set up EC2 Host from Secrets
+      # 12. Set up EC2 Host from Secrets only if module is selected for deployment
       - name: Set up EC2 Host
         run: |
-          EC2_HOST=${{ secrets[ matrix.module.ssh_host_var ] }}
-          echo "Resolved EC2_HOST: $EC2_HOST"
-          echo "EC2_HOST=$EC2_HOST" >> $GITHUB_ENV
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            EC2_HOST=${{ secrets[ matrix.module.ssh_host_var ] }}
+            echo "Resolved EC2_HOST: $EC2_HOST"
+            echo "EC2_HOST=$EC2_HOST" >> $GITHUB_ENV
+          fi
 
-      # 10. Deploy to EC2
+      # 13. Deploy to EC2 only if module is selected for deployment
       - name: Deploy to EC2
         run: |
-          set -e
-          echo "=== Logging into EC2 ==="
-          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${EC2_HOST} << 'EOF'
+          echo "Deploy_THIS_MODULE: ${{ env.DEPLOY_THIS_MODULE }}"  # DEPLOY_THIS_MODULE 값 확인
+          if [[ "${{ env.DEPLOY_THIS_MODULE }}" == "true" ]]; then
+            set -e
+            echo "=== Logging into EC2 ==="
+            ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${EC2_HOST} << EOF  # 'EOF' 사용
           
-          # EC2에서 AWS 인증 정보 설정
-          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
-          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
-          export AWS_REGION="${{ secrets.AWS_REGION }}"
+            # EC2에서 AWS 인증 정보 설정
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            export AWS_REGION="${{ secrets.AWS_REGION }}"
           
-           # AWS ECR에 로그인
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URI }}
+            # AWS ECR에 로그인
+            aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URI }}
           
-          MODULE=${{ matrix.module.name }}
-          IMAGE_TAG=${IMAGE_TAG}
-          CONTAINER_NAME="${{matrix.module.name}}-container"
-    
-          echo "=== Cleaning up old Docker images ==="
-          # 최신 6개 이미지를 제외한 나머지 삭제
-          IMAGE_COUNT=$(docker images -q | wc -l)
-          if [ "$IMAGE_COUNT" -gt 6 ]; then
-          echo "Deleting old images, keeping the latest 6..."
-          docker images -q | tail -n +7 | xargs -r docker rmi -f
+            MODULE=${{ matrix.module.name }}
+            IMAGE_TAG=${IMAGE_TAG}
+            CONTAINER_NAME="${{ matrix.module.name }}-container"
+          
+            echo "=== Cleaning up old Docker images ==="
+            # 최신 6개 이미지를 제외한 나머지 삭제
+            IMAGE_COUNT=$(docker images -q | wc -l)
+            if [ "$IMAGE_COUNT" -gt 6 ]; then
+              echo "Deleting old images, keeping the latest 6..."
+              docker images -q | tail -n +7 | xargs -r docker rmi -f
+            else
+              echo "No old images to delete. Current image count: $IMAGE_COUNT"
+            fi
+          
+            # Pull latest image
+            docker pull ${{ secrets.ECR_REPOSITORY_URI }}:latest || { echo "Docker pull failed"; exit 1; }
+          
+            echo "=== Verifying Docker images ==="
+            docker images  
+          
+            echo "=== Stopping and removing existing container ==="
+            docker ps --filter "name=$CONTAINER_NAME" | grep $CONTAINER_NAME && docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME || echo "No running container to stop."
+            docker ps -a --filter "name=$CONTAINER_NAME" -q | xargs -r docker stop | xargs -r docker rm || echo "No running container to stop."
+          
+            echo "=== Running new container ==="
+            docker run -d --name $CONTAINER_NAME -p 8080:8080 ${{ secrets.ECR_REPOSITORY_URI }}:latest
+          EOF
           else
-          echo "No old images to delete. Current image count: $IMAGE_COUNT"
+            echo "Skipping deployment as DEPLOY_THIS_MODULE is false."  # false일 때 건너뛰기
           fi
-          
-          # Pull latest image
-          docker pull ${{ secrets.ECR_REPOSITORY_URI }}:latest || { echo "Docker pull failed"; exit 1; }
-          
-          echo "=== Verifying Docker images ==="
-          docker images  
 
-          echo "=== Stopping and removing existing container ==="
-          docker ps --filter "name=$CONTAINER_NAME" | grep $CONTAINER_NAME && docker stop $CONTAINER_NAME && docker rm $CONTAINER_NAME || echo "No running container to stop."
-          docker ps -a --filter "name=$CONTAINER_NAME" -q | xargs -r docker stop | xargs -r docker rm || echo "No running container to stop."
-
-          echo "=== Running new container ==="
-          docker run -d --name $CONTAINER_NAME -p 8080:8080 ${{ secrets.ECR_REPOSITORY_URI }}:latest || { echo "Docker run failed"; exit 1; }
-
-          echo "=== Deployment completed successfully ==="
