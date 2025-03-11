@@ -38,6 +38,7 @@ public class ChatService {
     private final AccountPersist accountPersist;
 
     public ChatMessagesListResp getAllMessagesByRoomId(Role role, Long userAccountId, Long otherUserId) {
+        System.out.println("체크");
         Long chatRoomId ;
         String otherUserProfile = null;
         String otherUserName = null;
