@@ -1,5 +1,6 @@
 package ddog.groomer.presentation.account;
 
+import ddog.auth.annotation.AuthPayload;
 import ddog.auth.dto.PayloadDto;
 import ddog.auth.exception.common.CommonResponseEntity;
 import ddog.domain.shop.dto.UpdateShopReq;
@@ -25,23 +26,24 @@ public class AccountController {
         return success(accountService.signUp(request, response));
     }
 
-    @GetMapping("/profile")
-    public CommonResponseEntity<ProfileInfo> getGroomerInfo(PayloadDto payloadDto) {
+    @GetMapping("/info")
+    public CommonResponseEntity<ProfileInfo> getGroomerInfo(@AuthPayload PayloadDto payloadDto) {
         return success(accountService.getGroomerInfo(payloadDto.getAccountId()));
     }
 
     @GetMapping("/modify-page")
-    public CommonResponseEntity<ProfileInfo.UpdatePage> getUpdateInfo(PayloadDto payloadDto) {
+    public CommonResponseEntity<ProfileInfo.UpdatePage> getUpdateInfo(@AuthPayload PayloadDto payloadDto) {
         return success(accountService.getUpdatePage(payloadDto.getAccountId()));
     }
 
-    @PatchMapping("/profile")
-    public CommonResponseEntity<AccountResp> updateInfo(@RequestBody UpdateInfoReq request, PayloadDto payloadDto) {
+    @PatchMapping("/info")
+    public CommonResponseEntity<AccountResp> updateInfo(@RequestBody UpdateInfoReq request,
+                                                        @AuthPayload PayloadDto payloadDto) {
         return success(accountService.updateInfo(request, payloadDto.getAccountId()));
     }
 
     @GetMapping("/shop/info")
-    public CommonResponseEntity<ShopInfo.UpdatePage> getShopInfo(PayloadDto payloadDto) {
+    public CommonResponseEntity<ShopInfo.UpdatePage> getShopInfo(@AuthPayload PayloadDto payloadDto) {
         return success(accountService.getShopInfo(payloadDto.getAccountId()));
     }
 
@@ -51,12 +53,12 @@ public class AccountController {
     }
 
     @GetMapping("/withdraw-info")
-    public CommonResponseEntity<WithdrawInfoResp> getWithdrawInfo(PayloadDto payloadDto) {
+    public CommonResponseEntity<WithdrawInfoResp> getWithdrawInfo(@AuthPayload PayloadDto payloadDto) {
         return success(accountService.getWithdrawInfo(payloadDto.getAccountId()));
     }
 
-    @DeleteMapping("/profile")
-    public CommonResponseEntity<WithdrawResp> withdraw(PayloadDto payloadDto) {
+    @DeleteMapping("/info")
+    public CommonResponseEntity<WithdrawResp> withdraw(@AuthPayload PayloadDto payloadDto) {
         return success(accountService.withdraw(payloadDto.getAccountId()));
     }
 
