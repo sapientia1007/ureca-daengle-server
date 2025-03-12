@@ -65,12 +65,25 @@ jobs:
           CHANGED_MODULES=()
           # CHANGED_FILES에는 수정된 파일 목록이 들어있을 것
           for module in $CHANGED_FILES; do
+          
+          # 공통모듈인지 확인
+          for common in "${COMMON_MODULES[@]}"; do
+          if [[ "$module" == *"$common"* ]]; then
+          echo "Common module changed: $common"
+          CHANGED_MODULES+=("${API_MODULES[@]}")
+          break
+          fi
+          done
+          
           # 매트릭스의 각 모듈에 대해 확인
           if [[ "$module" == *"${{ matrix.module.path }}"* ]]; then
           CHANGED_MODULES+=("${{ matrix.module.name }}")
           fi
           done
-          echo "Changed modules: ${CHANGED_MODULES[@]}"
+          
+          # 중복 제거 및 결과 출력
+          CHANGED_MODULES=($(echo "${CHANGED_MODULES[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+          echo "Final modules to deploy: ${CHANGED_MODULES[@]}"
           echo "CHANGED_MODULES=${CHANGED_MODULES[@]}" >> $GITHUB_ENV
 
       # 4. Filter modules based on changed files
