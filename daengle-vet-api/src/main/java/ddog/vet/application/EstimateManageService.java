@@ -37,8 +37,6 @@ public class EstimateManageService {
     private final ReservationPersist reservationPersist;
 
     public ReservationEstimateContent findEstimateByVetAccountIdAndReservationId(Long vetAccountId, Long reservationId) {
-
-
         Long petId = reservationPersist.findByReservationId(reservationId).orElseThrow(()-> new PetException(PetExceptionType.PET_NOT_FOUND)).getPetId();
         Long estimateId = reservationPersist.findByReservationId(reservationId).orElseThrow().getEstimateId();
 
