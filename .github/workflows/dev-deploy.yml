@@ -73,7 +73,7 @@ jobs:
           for common in "${COMMON_MODULES[@]}"; do
           if [[ "$module" == *"$common"* ]]; then
           echo "Common module changed: $common"
-          CHANGED_MODULES+=("${API_MODULES[@]}")
+          CHANGED_MODULES+=("${{ matrix.module.name }}")
           break
           fi
           done
