@@ -63,6 +63,9 @@ jobs:
         id: determine_modules
         run: |
           CHANGED_MODULES=()
+          
+          COMMON_MODULES=("daengle-auth" "daengle-domain" "daengle-persistence-nosql" "daengle-persistence-queue" "daengle-persistence-rdb")
+          
           # CHANGED_FILES에는 수정된 파일 목록이 들어있을 것
           for module in $CHANGED_FILES; do
           
