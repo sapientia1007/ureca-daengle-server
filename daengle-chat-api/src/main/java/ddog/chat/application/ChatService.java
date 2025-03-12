@@ -177,7 +177,6 @@ public class ChatService {
     }
 
     public ChatMessage sendAndSaveMessage(ChatMessageReq chatMessageReq, Long roomId, Long accountId) {
-        System.out.println("chatService");
         Long recipientId = findMessageRecipientByRoomId(roomId, accountId);
         Long messageId = System.currentTimeMillis();
 
