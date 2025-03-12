@@ -22,6 +22,8 @@ public class PayloadArgumentResolver implements HandlerMethodArgumentResolver {
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
+
+
         return parameter.getParameterType().equals(PayloadDto.class)
                 && parameter.hasParameterAnnotation(AuthPayload.class);
     }
